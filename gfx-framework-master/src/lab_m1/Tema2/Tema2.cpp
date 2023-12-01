@@ -57,8 +57,8 @@ void Tema2::Init()
     follow_tank = true;
     free_look = false;
     player_tank = new Tank(glm::vec3(0, 0, 0));
-    tank_arr.push_back(new Tank(glm::vec3(5, 0, 5)));
     tank_arr.push_back(player_tank);
+    player_tank->ai_enabled = false;
     srand(time(NULL));
 
     camera = new implemented::MyCamera();
@@ -204,9 +204,16 @@ void Tema2::RenderTank(Tank* tank)
         modelMatrix = glm::translate(modelMatrix, tank->position);
         modelMatrix = glm::rotate(modelMatrix, tank->base_rotation, glm::vec3(0, 1, 0));
         modelMatrix = glm::translate(modelMatrix, MESH_SCALE * glm::vec3(0, 0, 0));
+        tank->damage_position = glm::vec3(modelMatrix * glm::vec4(tank->relative_dmg_pos, 1));
         modelMatrix = glm::scale(modelMatrix, MESH_SCALE * glm::vec3(1, 1, 1));
-
         RenderSimpleMesh(meshes["corp"], shaders["TemaShader"], modelMatrix, glm::vec3(0, 0.25f, 0.05f), tank);
+    }
+
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, tank->damage_position);
+        modelMatrix = glm::scale(modelMatrix, MESH_SCALE * glm::vec3(1, 1, 1));
+        RenderSimpleMesh(meshes["projectile"], shaders["TemaShader"], modelMatrix, glm::vec3(0, 0.25f, 0.05f), NULL);
     }
 
     {
@@ -346,6 +353,7 @@ void Tema2::Update(float deltaTimeSeconds)
         }
     }
 
+    // Projectile - Building
     for (int i = 0; i < projectile_arr.size(); i++)
     {
         ProjectileTank* curr_projectile = projectile_arr[i];
@@ -365,7 +373,7 @@ void Tema2::Update(float deltaTimeSeconds)
 
 void Tema2::FrameEnd()
 {
-    DrawCoordinateSystem(camera->GetViewMatrix(), projectionMatrix);
+    //DrawCoordinateSystem(camera->GetViewMatrix(), projectionMatrix);
 }
 
 
