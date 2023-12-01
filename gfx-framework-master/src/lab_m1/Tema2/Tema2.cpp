@@ -199,16 +199,17 @@ void Tema2::FrameStart()
 
 void Tema2::RenderTank(Tank* tank)
 {
+    // Body render
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, tank->position);
         modelMatrix = glm::rotate(modelMatrix, tank->base_rotation, glm::vec3(0, 1, 0));
-        modelMatrix = glm::translate(modelMatrix, MESH_SCALE * glm::vec3(0, 0, 0));
         tank->damage_position = glm::vec3(modelMatrix * glm::vec4(tank->relative_dmg_pos, 1));
         modelMatrix = glm::scale(modelMatrix, MESH_SCALE * glm::vec3(1, 1, 1));
         RenderSimpleMesh(meshes["corp"], shaders["TemaShader"], modelMatrix, glm::vec3(0, 0.25f, 0.05f), tank);
     }
 
+    // Dummy sphere for deformation visual
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, tank->damage_position);
@@ -216,6 +217,7 @@ void Tema2::RenderTank(Tank* tank)
         RenderSimpleMesh(meshes["projectile"], shaders["TemaShader"], modelMatrix, glm::vec3(0, 0.25f, 0.05f), NULL);
     }
 
+    // Turret render
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, tank->position);
@@ -227,6 +229,7 @@ void Tema2::RenderTank(Tank* tank)
         RenderSimpleMesh(meshes["turela"], shaders["TemaShader"], modelMatrix, glm::vec3(0, 0.5, 0.09f), tank);
     }
 
+    // Barrel render
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, tank->position);
@@ -240,6 +243,7 @@ void Tema2::RenderTank(Tank* tank)
         RenderSimpleMesh(meshes["teava"], shaders["TemaShader"], modelMatrix, glm::vec3(0.3f, 0.3f, 0.3f), tank);
     }
 
+    // Track render
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, tank->position);
@@ -251,6 +255,7 @@ void Tema2::RenderTank(Tank* tank)
         RenderSimpleMesh(meshes["senila"], shaders["TemaShader"], modelMatrix, glm::vec3(0.2f, 0.2f, 0.2f), tank);
     }
 
+    // Track render
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, tank->position);
@@ -273,7 +278,15 @@ void Tema2::Update(float deltaTimeSeconds)
     // Tank render and update
     for (int i = 0; i < tank_arr.size(); i++)
     {
-        tank_arr[i]->Update(deltaTimeSeconds);
+        tank_arr[i]->Update(deltaTimeSeconds, player_tank);
+        if (tank_arr[i]->state == TARGETING)
+        {
+            ProjectileTank* new_proj = tank_arr[i]->Target(deltaTimeSeconds, player_tank);
+            if (new_proj)
+            {
+                projectile_arr.push_back(new_proj);
+            }
+        }
         RenderTank(tank_arr[i]);
     }
 

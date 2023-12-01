@@ -1,6 +1,7 @@
 #pragma once
 #include "components/simple_scene.h"
 #include "ProjectileTank.h"
+using namespace std;
 
 #define MESH_SCALE 0.15f
 #define BALL_OFFSET glm::vec3(0, 2.2073f, -5.35f) * MESH_SCALE
@@ -35,13 +36,19 @@ public:
 
 	ProjectileTank* GetNewProjectile();
 
-	void Update(float deltaTimeSeconds);
+	void Update(float deltaTimeSeconds, Tank *player_tank);
 
 	bool CanShoot();
 
 	ProjectileTank* Shoot();
 
 	void TakeDamage(glm::vec3 damage_source);
+
+	ProjectileTank* Target(float deltaTimeSeconds, Tank* player_tank);
+
+	bool TargetHorizontal(float delatTimeSeconds, Tank *player_tank);
+
+	bool TargetVertical(float deltaTimeSeconds, Tank* player_tank);
 
 
 private:

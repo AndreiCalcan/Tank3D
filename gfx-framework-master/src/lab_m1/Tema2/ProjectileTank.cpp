@@ -3,7 +3,7 @@
 ProjectileTank::ProjectileTank(glm::vec3 position, glm::vec3 direction)
 {
 	this->position = position;
-	this->velocity = direction * 10.0f;
+	this->velocity = direction * PROJECTILE_SPEED;
 	alive = true;
 }
 

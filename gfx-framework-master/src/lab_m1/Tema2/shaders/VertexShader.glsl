@@ -31,7 +31,8 @@ void main()
         vec3 world_pos = (Model * vec4(v_position,1)).xyz;
         vec3 dir = normalize(world_pos - Damage_source);
         float dist = (distance(world_pos, Damage_source));
-        new_pos = world_pos + ((1 - HP)  / (dist + 9.5f)) * dir * 4.0f;
+        // dist = 0.15f * 1.4f;
+        new_pos = world_pos + ((1 - HP)  / (dist + 1.0f)) * dir * 0.4f;
         gl_Position = Projection * View *vec4(new_pos, 1.0);
     }   
 }

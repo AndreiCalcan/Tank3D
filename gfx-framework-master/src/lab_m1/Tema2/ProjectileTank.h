@@ -1,6 +1,7 @@
 #pragma once
 #include "components/simple_scene.h"
-#define GRAVITY 7.0f
+#define GRAVITY 5.0f
+#define PROJECTILE_SPEED 8.0f
 
 class ProjectileTank
 {
