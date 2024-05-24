@@ -27,6 +27,7 @@ Lab9::~Lab9()
 void Lab9::Init()
 {
     const string sourceTextureDir = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "lab9", "textures");
+    srand(time(NULL));
 
     // Load textures
     {
@@ -97,8 +98,11 @@ void Lab9::Init()
         vector<glm::vec2> textureCoords
         {
             // TODO(student): Complete texture coordinates for the square
-            glm::vec2(0.0f, 0.0f)
-
+           
+            glm::vec2(0, 0),
+            glm::vec2(0, 1.0f),
+            glm::vec2(1.0f, 1.0f),
+            glm::vec2(1.0f, 0)
         };
 
         vector<unsigned int> indices =
@@ -214,9 +218,19 @@ void Lab9::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & modelM
     glUniformMatrix4fv(loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
     // TODO(student): Set any other shader uniforms that you need
+    float time = (float)Engine::GetElapsedTime();
+    int location = glGetUniformLocation(shader->program, "Time");
+    glUniform1f(location, time);
+
+
 
     if (texture1)
     {
+        glActiveTexture(GL_TEXTURE0);
+
+        glBindTexture(GL_TEXTURE_2D, texture1->GetTextureID());
+
+        glUniform1i(glGetUniformLocation(shader->program, "texture_1"), 0);
         // TODO(student): Do these:
         // - activate texture location 0
         // - bind the texture1 ID
@@ -226,6 +240,11 @@ void Lab9::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & modelM
 
     if (texture2)
     {
+        glActiveTexture(GL_TEXTURE1);
+
+        glBindTexture(GL_TEXTURE_2D, texture2->GetTextureID());
+
+        glUniform1i(glGetUniformLocation(shader->program, "texture_2"), 1);
         // TODO(student): Do these:
         // - activate texture location 1
         // - bind the texture2 ID
@@ -247,13 +266,26 @@ Texture2D* Lab9::CreateRandomTexture(unsigned int width, unsigned int height)
     unsigned char* data = new unsigned char[size];
 
     // TODO(student): Generate random texture data
+    for (int i = 0; i < size; i++)
+    {
+        data[i] = rand() % 255;
+    }
+
 
     // TODO(student): Generate and bind the new texture ID
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
 
     if (GLEW_EXT_texture_filter_anisotropic) {
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4);
     }
     // TODO(student): Set the texture parameters (MIN_FILTER, MAG_FILTER and WRAPPING MODE) using glTexParameteri
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // modul de wrapping pe orizontala
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // modul de wrapping pe verticala
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     CheckOpenGLError();
@@ -262,7 +294,7 @@ Texture2D* Lab9::CreateRandomTexture(unsigned int width, unsigned int height)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
     // TODO(student): Generate texture mip-maps
-
+    glGenerateMipmap(GL_TEXTURE_2D);
     CheckOpenGLError();
 
     // Save the texture into a wrapper Texture2D class for using easier later during rendering phase

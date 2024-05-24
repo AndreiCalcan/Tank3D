@@ -26,6 +26,8 @@ Lab8::~Lab8()
 
 void Lab8::Init()
 {
+    cut_off_angle = RADIANS(30);
+    spotlight = 0;
     {
         Mesh* mesh = new Mesh("box");
         mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "box.obj");
@@ -57,6 +59,8 @@ void Lab8::Init()
     {
         lightPosition = glm::vec3(0, 1, 1);
         lightDirection = glm::vec3(0, -1, 0);
+        lightPosition1 = glm::vec3(0, 1, 1);
+        lightDirection1 = glm::vec3(0, -1, 0);
         materialShininess = 30;
         materialKd = 0.5;
         materialKs = 0.5;
@@ -137,12 +141,25 @@ void Lab8::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & modelM
     // Render an object using the specified shader and the specified position
     glUseProgram(shader->program);
 
+    glm::vec3 point_light_pos[2];
+    glm::vec3 point_light_direction[2];
+
+    lightPosition1 = lightPosition + glm::vec3(2, 0, 0);
+    lightDirection1 = lightDirection;
+
+
+    point_light_pos[0] = lightPosition;
+    point_light_pos[1] = lightPosition1;
+
+    point_light_direction[0] = lightDirection;
+    point_light_direction[1] = lightDirection1;
+
     // Set shader uniforms for light properties
     int light_position = glGetUniformLocation(shader->program, "light_position");
-    glUniform3f(light_position, lightPosition.x, lightPosition.y, lightPosition.z);
+    glUniform3fv(light_position, 2, glm::value_ptr(point_light_pos[0]));
 
     int light_direction = glGetUniformLocation(shader->program, "light_direction");
-    glUniform3f(light_direction, lightDirection.x, lightDirection.y, lightDirection.z);
+    glUniform3fv(light_direction, 2, glm::value_ptr(point_light_direction[0]));
 
     // Set eye position (camera position) uniform
     glm::vec3 eyePosition = GetSceneCamera()->m_transform->GetWorldPosition();
@@ -163,6 +180,11 @@ void Lab8::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & modelM
     glUniform3f(object_color, color.r, color.g, color.b);
 
     // TODO(student): Set any other shader uniforms that you need
+    int location = glGetUniformLocation(shader->program, "spotlight");
+    glUniform1i(location, spotlight);
+
+    location = glGetUniformLocation(shader->program, "cut_off");
+    glUniform1f(location, cut_off_angle);
 
     // Bind model matrix
     GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
@@ -212,6 +234,14 @@ void Lab8::OnInputUpdate(float deltaTime, int mods)
         // TODO(student): Set any other keys that you might need
 
     }
+
+    if (window->KeyHold(GLFW_KEY_M)) {
+        cut_off_angle += 2.0 * deltaTime;
+    }
+
+    if (window->KeyHold(GLFW_KEY_N)) {
+        cut_off_angle -= 2.0 * deltaTime;
+    }
 }
 
 
@@ -220,7 +250,10 @@ void Lab8::OnKeyPress(int key, int mods)
     // Add key press event
 
     // TODO(student): Set keys that you might need
-
+    if (key == GLFW_KEY_F)
+    {
+        spotlight = 1 - spotlight;
+    }
 }
 
 

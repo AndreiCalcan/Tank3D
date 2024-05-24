@@ -24,6 +24,14 @@ Tema2::~Tema2()
 }
 
 
+void Tema2::disableAI()
+{
+    for each (Tank *tank in tank_arr)
+    {
+        tank->ai_enabled = false;
+    }
+}
+
 glm::vec3 Tema2::Collide(glm::vec3 sphere_pos, float sphere_radius, Building* box)
 {
     float maxX = box->position.x + box->scale.x;
@@ -60,11 +68,14 @@ void Tema2::Init()
     tank_arr.push_back(player_tank);
     player_tank->ai_enabled = false;
     srand(time(NULL));
+    game_timer = 0;
+    game_running = true;
+    score = 0;
 
     camera = new implemented::MyCamera();
-    camera->Set(glm::vec3(0, 1, 2.5f), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-    camera_direction = glm::normalize(glm::vec3(0, 1, 2.5f));
-    camera_distance = glm::distance(glm::vec3(0, 1, 2.5f), glm::vec3(0, 0, 0));
+    camera->Set(glm::vec3(0, 0.85f, 2.25f), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    camera_direction = glm::normalize(glm::vec3(0, 0.85f, 2.25f));
+    camera_distance = glm::distance(glm::vec3(0, 0.85f, 2.25f), glm::vec3(0, 0, 0));
 
     {
         Mesh* mesh = new Mesh("corp");
@@ -114,8 +125,6 @@ void Tema2::Init()
         meshes[mesh->GetMeshID()] = mesh;
     }
 
-    // TODO(student): After you implement the changing of the projection
-    // parameters, remove hardcodings of these parameters
     projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
 
 
@@ -157,7 +166,7 @@ void Tema2::Init()
     }
 
     // Enemy spawn
-    int enemy_number = 3;
+    int enemy_number = 5;
     for (int i = 0; i < enemy_number; i++)
     {
         float x = (rand() % 5000) / 100.0f - 25;
@@ -271,6 +280,18 @@ void Tema2::RenderTank(Tank* tank)
 
 void Tema2::Update(float deltaTimeSeconds)
 {
+    if (game_running)
+    {
+        game_timer += deltaTimeSeconds;
+    }
+    
+    if(game_timer > 120 && game_running)
+    {
+        game_running = false;
+        disableAI();
+        cout << "Timer ran out!\nFinal score: " << score << endl;
+    }
+
     // Camera follow
     if (follow_tank)
         camera->Set(player_tank->position + camera_distance * camera_direction, player_tank->position, glm::vec3(0, 1, 0));
@@ -351,10 +372,17 @@ void Tema2::Update(float deltaTimeSeconds)
             ProjectileTank* curr_projectile = projectile_arr[j];
             float dist = glm::distance(curr_tank->position, curr_projectile->position);
             float displacement = TANK_RADIUS + PROJECTILE_RADIUS - dist;
-            if (displacement > 0)
+            if (displacement > 0 && curr_tank->alive)
             {
                 curr_tank->TakeDamage(curr_projectile->position);
                 curr_projectile->alive = false;
+                if (i > 0)
+                {
+                    score += 10;
+                    if (!curr_tank->alive)
+                        score += 100;
+                }
+                cout << score << endl;
             }
         }
 
@@ -387,6 +415,12 @@ void Tema2::Update(float deltaTimeSeconds)
 void Tema2::FrameEnd()
 {
     //DrawCoordinateSystem(camera->GetViewMatrix(), projectionMatrix);
+    if (!player_tank->alive && game_running)
+    {
+        game_running = false;
+        disableAI();
+        cout << "Player died!" << endl;
+    }
 }
 
 
@@ -413,23 +447,15 @@ void Tema2::RenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelM
     // Render an object using the specified shader and the specified position
     glUseProgram(shader->program);
 
-    // TODO(student): Get shader location for uniform mat4 "Model"
     location = glGetUniformLocation(shader->program, "Model");
 
-    // TODO(student): Set shader uniform "Model" to modelMatrix
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
-    // TODO(student): Get shader location for uniform mat4 "View"
     location = glGetUniformLocation(shader->program, "View");
-
-    // TODO(student): Set shader uniform "View" to viewMatrix
     glm::mat4 viewMatrix = camera->GetViewMatrix();
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-    // TODO(student): Get shader location for uniform mat4 "Projection"
     location = glGetUniformLocation(shader->program, "Projection");
-
-    // TODO(student): Set shader uniform "Projection" to projectionMatrix
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
     location = glGetUniformLocation(shader->program, "Color");
@@ -482,48 +508,27 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
             return;
         }
         
-        if (window->KeyHold(GLFW_KEY_W)) {
+        if (window->KeyHold(GLFW_KEY_W) && game_running) {
             // TODO(student): Translate the camera forward
             player_tank->MoveForward(deltaTime);
         }
 
-        if (window->KeyHold(GLFW_KEY_S)) {
+        if (window->KeyHold(GLFW_KEY_S) && game_running) {
             // TODO(student): Translate the camera forward
             player_tank->MoveForward(-deltaTime);;
         }
 
-        if (window->KeyHold(GLFW_KEY_A)) {
+        if (window->KeyHold(GLFW_KEY_A) && game_running) {
             // TODO(student): Translate the camera forward
             player_tank->RotateTank(deltaTime);
             camera_direction = glm::normalize(glm::vec3(glm::rotate(glm::mat4(1), deltaTime, glm::vec3(0, 1, 0)) * glm::vec4(camera_direction, 1)));
         }
 
-        if (window->KeyHold(GLFW_KEY_D)) {
+        if (window->KeyHold(GLFW_KEY_D) && game_running) {
             // TODO(student): Translate the camera forward
             player_tank->RotateTank(-deltaTime);
             camera_direction = glm::normalize(glm::vec3(glm::rotate(glm::mat4(1), -deltaTime, glm::vec3(0, 1, 0)) * glm::vec4(camera_direction, 1)));
         }
-    }
-
-    // TODO(student): Change projection parameters. Declare any extra
-    // variables you might need in the class header. Inspect this file
-    // for any hardcoded projection arguments (can you find any?) and
-    // replace them with those extra variables.
-
-    if (window->KeyHold(GLFW_KEY_M)) {
-        fov += 2.0 * deltaTime;
-    }
-
-    if (window->KeyHold(GLFW_KEY_N)) {
-        fov -= 2.0 * deltaTime;
-    }
-
-    if (window->KeyHold(GLFW_KEY_B)) {
-        right += deltaTime;
-    }
-
-    if (window->KeyHold(GLFW_KEY_V)) {
-        right -= deltaTime;
     }
 
 }
@@ -598,7 +603,7 @@ void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 void Tema2::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 {
     // Add mouse button press event
-    if (button == GLFW_MOUSE_BUTTON_2 && player_tank->CanShoot()) // click stanga
+    if (button == GLFW_MOUSE_BUTTON_2 && player_tank->CanShoot() && game_running) // click stanga
     {
         projectile_arr.push_back(player_tank->Shoot());
     }

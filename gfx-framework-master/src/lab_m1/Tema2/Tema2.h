@@ -18,6 +18,8 @@ namespace m1
         Tema2();
         ~Tema2();
 
+        void disableAI();
+
         glm::vec3 Collide(glm::vec3 sphere_pos, float sphere_radius, Building* box);
 
         void Init() override;
@@ -45,12 +47,14 @@ namespace m1
         Tank* player_tank;
         implemented::MyCamera *camera;
         glm::mat4 projectionMatrix;
-        bool renderCameraTarget, follow_tank, free_look;
+        bool renderCameraTarget, follow_tank, free_look, game_running;
         float fov, right, camera_distance;
         std::vector<struct Tank*> tank_arr;
         std::vector<struct Building*> building_arr;
         std::vector<struct ProjectileTank*> projectile_arr;
         float max_building_scale, min_building_scale;
+        float game_timer;
+        int score;
 
         // TODO(student): If you need any other class variables, define them here.
 

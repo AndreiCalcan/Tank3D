@@ -32,10 +32,13 @@ namespace m1
 
         glm::vec3 lightPosition;
         glm::vec3 lightDirection;
+        glm::vec3 lightPosition1;
+        glm::vec3 lightDirection1;
         unsigned int materialShininess;
         float materialKd;
         float materialKs;
-
+        int spotlight;
+        float cut_off_angle;
         // TODO(student): If you need any other class variables, define them here.
 
     };

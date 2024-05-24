@@ -20,7 +20,7 @@ Tank::Tank(glm::vec3 position) {
 
 void Tank::MoveForward(float deltaTimeSeconds)
 {
-	position = position + deltaTimeSeconds * forward;
+	position = position + 2 * deltaTimeSeconds * forward;
 }
 
 void Tank::RotateTank(float deltaTimeSeconds)
@@ -161,6 +161,7 @@ void Tank::TakeDamage(glm::vec3 damage_source)
 	else
 	{
 		ai_enabled = false;
+		alive = false;
 	}
 	relative_dmg_pos = damage_source - position;
 	relative_dmg_pos = glm::vec3(glm::rotate(glm::mat4(1),-base_rotation, glm::vec3(0, 1, 0)) * glm::vec4(relative_dmg_pos, 1));

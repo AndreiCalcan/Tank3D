@@ -32,6 +32,7 @@ namespace m1
         void OnMouseBtnPress(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
+
         void OnWindowResize(int width, int height) override;
 
         std::unordered_map<std::string, Texture2D *> mapTextures;
